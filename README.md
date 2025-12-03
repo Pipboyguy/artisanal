@@ -35,7 +35,7 @@ Live at [artisanal.vercel.app](https://artisanal.vercel.app)
 
 ## What we check
 
-Repos are excluded if any of the 24 AI bots above have activity (pushes, PRs, comments) in the last 6 months.
+Repos are excluded if any of the AI agents above have activity (pushes, PRs, comments) in the last 6 months.
 
 ## Roadmap
 
