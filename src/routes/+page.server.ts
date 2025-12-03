@@ -1,37 +1,28 @@
--- Artisanal repos: 100+ stars, active in last 6 months, zero AI involvement
--- Run against: clickhouse client --host play.clickhouse.com --user play --secure
+import { backOff } from 'exponential-backoff';
+import type { PageServerLoad } from './$types';
 
+const QUERY = `
 WITH
   ai_actors AS (
-    -- Anthropic
     SELECT 'claude[bot]' AS actor UNION ALL
     SELECT 'anthropic[bot]' UNION ALL
-    -- OpenAI / Codex
     SELECT 'chatgpt-codex-connector[bot]' UNION ALL
     SELECT 'copilot' UNION ALL
     SELECT 'github-copilot[bot]' UNION ALL
     SELECT 'copilot-workspace[bot]' UNION ALL
-    -- Google
     SELECT 'google-labs-jules[bot]' UNION ALL
     SELECT 'gemini-code-assist[bot]' UNION ALL
-    -- Cognition (Devin)
     SELECT 'devin-ai-integration[bot]' UNION ALL
     SELECT 'devin[bot]' UNION ALL
-    -- Cursor
     SELECT 'cursor[bot]' UNION ALL
-    -- Amazon
     SELECT 'amazon-q-developer[bot]' UNION ALL
-    -- Lovable
     SELECT 'lovable-dev[bot]' UNION ALL
-    -- Code review bots
     SELECT 'coderabbitai[bot]' UNION ALL
     SELECT 'sourcery-ai[bot]' UNION ALL
     SELECT 'qodo-merge-pro[bot]' UNION ALL
     SELECT 'codeflash-ai[bot]' UNION ALL
-    -- Sweep
     SELECT 'sweep-ai[bot]' UNION ALL
     SELECT 'sweep[bot]' UNION ALL
-    -- Other AI coding bots
     SELECT 'codegen-bot' UNION ALL
     SELECT 'aider-bot' UNION ALL
     SELECT 'gpt-pilot[bot]' UNION ALL
@@ -43,10 +34,8 @@ WITH
     FROM github_events
     WHERE created_at > now() - INTERVAL 12 MONTH
       AND (
-        -- AI actor: pushes, PRs, or comments
         (actor_login IN (SELECT actor FROM ai_actors)
          AND event_type IN ('PushEvent', 'PullRequestEvent', 'IssueCommentEvent', 'PullRequestReviewCommentEvent'))
-        -- AI commit message patterns
         OR (event_type = 'PushEvent' AND (
           body ILIKE '%noreply@anthropic.com%'
           OR body ILIKE '%Co-authored-by:%Claude%'
@@ -85,3 +74,25 @@ JOIN active a ON s.repo_name = a.repo_name
 WHERE s.repo_name NOT IN (SELECT repo_name FROM ai_repos)
 ORDER BY s.stars DESC
 LIMIT 200
+FORMAT JSON
+`;
+
+export const load: PageServerLoad = async ({ setHeaders }) => {
+	const json = await backOff(
+		async () => {
+			const res = await fetch('https://play.clickhouse.com/?user=play', {
+				method: 'POST',
+				body: QUERY
+			});
+			if (!res.ok) throw new Error(`ClickHouse: ${res.status}`);
+			return res.json();
+		},
+		{ numOfAttempts: 3, startingDelay: 1000, jitter: 'full' }
+	);
+
+	setHeaders({ 'cache-control': 'public, max-age=82800' });
+
+	return {
+		repos: json.data as { repo: string; stars: number; last_active: string }[]
+	};
+};
