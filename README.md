@@ -36,3 +36,4 @@ Live at [artisanal.vercel.app](https://artisanal.vercel.app)
 ## Roadmap
 
 - [ ] AGENTS.md / CLAUDE.md / .cursorrules detection
+
