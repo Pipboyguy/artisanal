@@ -33,7 +33,12 @@ Live at [artisanal.vercel.app](https://artisanal.vercel.app)
 | `tabnine[bot]` | Tabnine |
 | `cody[bot]` | Sourcegraph |
 
+## What we check
+
+Repos are excluded if any of the 24 AI bots above have activity (pushes, PRs, comments) in the last 6 months.
+
 ## Roadmap
 
+- [ ] Co-authored-by commit message detection
 - [ ] AGENTS.md / CLAUDE.md / .cursorrules detection
 
