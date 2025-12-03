@@ -94,14 +94,21 @@ export const load: PageServerLoad = async ({ setHeaders }) => {
 
 	const json = await backOff(
 		async () => {
-			const res = await fetch('https://play.clickhouse.com/?user=play', {
-				method: 'POST',
-				body: QUERY
-			});
-			if (!res.ok) throw new Error(`ClickHouse: ${res.status}`);
-			return res.json();
+			const controller = new AbortController();
+			const timeout = setTimeout(() => controller.abort(), 45000);
+			try {
+				const res = await fetch('https://play.clickhouse.com/?user=play', {
+					method: 'POST',
+					body: QUERY,
+					signal: controller.signal
+				});
+				if (!res.ok) throw new Error(`ClickHouse: ${res.status}`);
+				return res.json();
+			} finally {
+				clearTimeout(timeout);
+			}
 		},
-		{ numOfAttempts: 3, startingDelay: 1000, jitter: 'full' }
+		{ numOfAttempts: 1 }
 	);
 
 	setHeaders({ 'cache-control': 'public, max-age=82800' });
