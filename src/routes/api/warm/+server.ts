@@ -1,5 +1,7 @@
 import type { RequestHandler } from './$types';
 
+export const config = { maxDuration: 60 };
+
 export const GET: RequestHandler = async ({ fetch, url }) => {
 	console.log('[artisanal] Cache warm triggered');
 

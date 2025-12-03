@@ -4,6 +4,8 @@ import { readFileSync, writeFileSync, statSync } from 'fs';
 import { kv } from '@vercel/kv';
 import type { PageServerLoad } from './$types';
 
+export const config = { maxDuration: 60 };
+
 const CACHE_FILE = '/tmp/artisanal-repos.json';
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const KV_KEY = 'artisanal:repos';
