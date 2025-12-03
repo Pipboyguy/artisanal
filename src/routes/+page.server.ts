@@ -50,7 +50,6 @@ WITH
     SELECT repo_name, count() AS stars
     FROM github_events
     WHERE event_type = 'WatchEvent'
-      AND created_at > now() - INTERVAL 3 YEAR
     GROUP BY repo_name
     HAVING stars >= 100
   ),
@@ -69,7 +68,7 @@ FROM starred s
 JOIN active a ON s.repo_name = a.repo_name
 WHERE s.repo_name NOT IN (SELECT repo_name FROM ai_repos)
 ORDER BY s.stars DESC
-LIMIT 200
+LIMIT 1000
 FORMAT JSON
 `;
 
