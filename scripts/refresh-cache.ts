@@ -1,11 +1,7 @@
-import { dev } from '$app/environment';
-import { readFileSync, writeFileSync, statSync } from 'fs';
-import { kv } from '@vercel/kv';
-import type { PageServerLoad } from './$types';
+import { createClient } from '@vercel/kv';
 
-const CACHE_FILE = '/tmp/artisanal-repos.json';
-const CACHE_TTL_MS = 60 * 60 * 1000;
 const KV_KEY = 'artisanal:repos';
+const KV_TTL_SECONDS = 25 * 60 * 60;
 
 const QUERY = `
 WITH
@@ -69,27 +65,40 @@ LIMIT 1000
 FORMAT JSON
 `;
 
-export const load: PageServerLoad = async ({ setHeaders }) => {
-	if (dev) {
-		try {
-			const stat = statSync(CACHE_FILE);
-			if (Date.now() - stat.mtimeMs < CACHE_TTL_MS) {
-				return { repos: JSON.parse(readFileSync(CACHE_FILE, 'utf-8')) };
-			}
-		} catch {}
+async function main() {
+	const kvUrl = process.env.KV_REST_API_URL;
+	const kvToken = process.env.KV_REST_API_TOKEN;
 
-		const res = await fetch('https://play.clickhouse.com/?user=play', { method: 'POST', body: QUERY });
-		const json = await res.json();
-		const repos = json.data as { repo: string; stars: number; last_active: string }[];
-		writeFileSync(CACHE_FILE, JSON.stringify(repos));
-		return { repos };
+	if (!kvUrl || !kvToken) {
+		console.error('Missing KV_REST_API_URL or KV_REST_API_TOKEN');
+		process.exit(1);
 	}
 
-	const cached = await kv.get<{ repo: string; stars: number; last_active: string }[]>(KV_KEY);
-	if (cached) {
-		setHeaders({ 'cache-control': 'public, max-age=82800' });
-		return { repos: cached };
+	const kv = createClient({ url: kvUrl, token: kvToken });
+
+	console.log('Querying ClickHouse...');
+	const start = Date.now();
+
+	const res = await fetch('https://play.clickhouse.com/?user=play', {
+		method: 'POST',
+		body: QUERY
+	});
+
+	if (!res.ok) {
+		console.error(`ClickHouse error: ${res.status}`);
+		process.exit(1);
 	}
 
-	return { repos: [] };
-};
+	const json = await res.json();
+	const repos = json.data as { repo: string; stars: number; last_active: string }[];
+
+	console.log(`Query completed in ${((Date.now() - start) / 1000).toFixed(1)}s - ${repos.length} repos`);
+
+	await kv.set(KV_KEY, repos, { ex: KV_TTL_SECONDS });
+	console.log('Cache updated in Vercel KV');
+}
+
+main().catch((err) => {
+	console.error('Failed:', err);
+	process.exit(1);
+});
