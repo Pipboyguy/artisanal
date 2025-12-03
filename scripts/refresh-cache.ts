@@ -1,4 +1,4 @@
-import { createClient } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 
 const KV_KEY = 'artisanal:repos';
 const KV_TTL_SECONDS = 25 * 60 * 60;
@@ -74,7 +74,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	const kv = createClient({ url: kvUrl, token: kvToken });
+	const redis = new Redis({ url: kvUrl, token: kvToken });
 
 	console.log('Querying ClickHouse...');
 	const start = Date.now();
@@ -94,7 +94,7 @@ async function main() {
 
 	console.log(`Query completed in ${((Date.now() - start) / 1000).toFixed(1)}s - ${repos.length} repos`);
 
-	await kv.set(KV_KEY, repos, { ex: KV_TTL_SECONDS });
+	await redis.set(KV_KEY, JSON.stringify(repos), { ex: KV_TTL_SECONDS });
 	console.log('Cache updated in Vercel KV');
 }
 
