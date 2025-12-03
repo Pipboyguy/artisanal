@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Artisanal</title>
+</svelte:head>
+
 <script lang="ts">
 	import { Github } from 'lucide-svelte';
 
