@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Github } from 'lucide-svelte';
+
 	type Repo = { repo: string; stars: number; last_active: string };
 	type Key = keyof Repo;
 
@@ -18,7 +20,12 @@
 </script>
 
 <main class="max-w-4xl mx-auto p-8">
-	<h1 class="text-2xl font-bold mb-2">artisanal</h1>
+	<div class="flex items-center gap-3 mb-2">
+		<h1 class="text-2xl font-bold">artisanal</h1>
+		<a href="https://github.com/Pipboyguy/artisanal" target="_blank" class="text-zinc-400 hover:text-zinc-600">
+			<Github size={18} />
+		</a>
+	</div>
 	<p class="text-zinc-500 mb-6">Reject AI slop. Popular GitHub repos with no detected vibe coding activity.</p>
 
 	<div class="border rounded-lg overflow-hidden">
