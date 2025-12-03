@@ -48,4 +48,6 @@
 			</tbody>
 		</table>
 	</div>
+
+	<p class="text-xs text-zinc-400 mt-4">Not yet detected: AGENTS.md, CLAUDE.md, .cursorrules, co-authored-by commit messages</p>
 </main>
