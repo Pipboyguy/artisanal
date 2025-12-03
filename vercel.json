@@ -1,4 +1,12 @@
 {
+	"functions": {
+		"src/routes/+page.server.ts": {
+			"maxDuration": 60
+		},
+		"src/routes/api/warm/+server.ts": {
+			"maxDuration": 60
+		}
+	},
 	"crons": [
 		{
 			"path": "/api/warm",

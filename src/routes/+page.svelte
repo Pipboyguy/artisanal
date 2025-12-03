@@ -19,7 +19,8 @@
 
 <main class="max-w-4xl mx-auto p-8">
 	<h1 class="text-2xl font-bold mb-2">artisanal</h1>
-	<p class="text-zinc-500 mb-6">100+ star repos with zero AI involvement (last 12 months)</p>
+	<p class="text-zinc-500 mb-2">Reject AI slop. Popular GitHub repos with no detected vibe coding activity.</p>
+	<p class="text-zinc-400 text-sm mb-6">Soon: AGENTS.md detection, commit pattern analysis, artisanal certification badges.</p>
 
 	<div class="border rounded-lg overflow-hidden">
 		<table class="w-full text-sm table-fixed">
